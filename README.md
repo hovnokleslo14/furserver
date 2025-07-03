@@ -78,7 +78,7 @@ furserver/
 
 ## 📜 Licence
 
-MIT License
+GPL-3.0 license
 
 ---
 

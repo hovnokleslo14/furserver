@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FurServer - Video Library</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body class="yt-dark">
+    <header class="yt-header">
+        <div class="yt-logo">
+            <svg width="40" height="40" viewBox="0 0 48 48"><rect x="4" y="8" width="40" height="32" rx="8" fill="#FF0000"/><polygon points="20,16 34,24 20,32" fill="#fff"/></svg>
+            <span class="yt-title">FurServer</span>
+        </div>
+        <span class="yt-subtitle">Your personal video streaming service (made by furplex)</span>
+        <form method="get" class="yt-search-form">
+            <input type="text" name="q" class="yt-search-input" placeholder="Hledat video..." value="{{ query|default('') }}">
+            <button type="submit" class="yt-btn yt-btn-search">🔍</button>
+        </form>
+        <button class="yt-upload-icon-btn" id="openUploadPopup" title="Nahrát">
+            <!-- YouTube upload icon SVG -->
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" fill="#232323"/>
+                <path d="M12 7v7m0 0l-3-3m3 3l3-3M7 17h10" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
+    </header>
+    <div id="uploadPopup" class="yt-upload-popup">
+        <div class="yt-upload-popup-content">
+            <button class="yt-upload-popup-close" id="closeUploadPopup">&times;</button>
+            <h2>Nahrát soubor</h2>
+            <form id="popupUploadForm" action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data">
+                <div class="yt-upload-type-select">
+                    <label>
+                        <input type="radio" name="upload_type" value="video" checked> Video
+                    </label>
+                    <label>
+                        <input type="radio" name="upload_type" value="photo"> Fotka
+                    </label>
+                </div>
+                <input type="file" name="video" id="popupVideoInput" accept="video/*" style="display:none;">
+                <input type="file" name="photo" id="popupPhotoInput" accept="image/*" style="display:none;">
+                <label for="popupFileInput" class="yt-btn yt-btn-upload yt-upload-file-label" id="popupFileLabel">Vybrat soubor</label>
+                <input type="file" id="popupFileInput" style="display:none;">
+                <div id="popupPreview" class="yt-upload-preview"></div>
+                <input type="text" name="custom_name" id="popupCustomName" class="yt-input yt-upload-name" placeholder="Název souboru (volitelné)">
+                <button type="submit" class="yt-btn yt-btn-upload" style="margin-top:1.2rem;">Nahrát</button>
+            </form>
+        </div>
+    </div>
+    <main>
+        <section class="yt-video-list">
+            <div class="yt-sort-bar">
+                <form method="get" style="display:inline;">
+                    <input type="hidden" name="q" value="{{ query|default('') }}">
+                    <label>Řadit podle:</label>
+                    <select name="sort" onchange="this.form.submit()" class="yt-select">
+                        <option value="added" {% if sort=='added' %}selected{% endif %}>Data přidání</option>
+                        <option value="name" {% if sort=='name' %}selected{% endif %}>Názvu</option>
+                        <option value="size" {% if sort=='size' %}selected{% endif %}>Velikosti</option>
+                        <option value="watched" {% if sort=='watched' %}selected{% endif %}>Délky sledování</option>
+                    </select>
+                    <select name="order" onchange="this.form.submit()" class="yt-select">
+                        <option value="desc" {% if order=='desc' %}selected{% endif %}>Sestupně</option>
+                        <option value="asc" {% if order=='asc' %}selected{% endif %}>Vzestupně</option>
+                    </select>
+                </form>
+            </div>
+            <div class="yt-videos">
+                {% for filename, meta in videos %}
+                <div class="yt-video-card">
+                    <div class="yt-thumb-outer">
+                        <div class="yt-thumb-inner">
+                            <video src="{{ url_for('video', filename=filename) }}" preload="metadata" class="yt-thumb-video" onmouseover="this.play()" onmouseout="this.pause();this.currentTime=0;"></video>
+                        </div>
+                    </div>
+                    <div class="yt-video-info">
+                        <span class="yt-video-title" title="{{ meta.original_name }}">{{ meta.original_name }}</span>
+                        <div class="yt-video-meta">
+                            <span>Přidáno: {{ meta.added[:19].replace('T',' ') }}</span>
+                            <span>Velikost: {{ (meta.size/1024/1024)|round(2) }} MB</span>
+                            <span>Sledováno: {{ (meta.watched or 0)|round(1) }}/{{ (meta.duration or 0)|round(1) }} s</span>
+                        </div>
+                        <div class="yt-actions">
+                            <a href="{{ url_for('video', filename=filename) }}" class="yt-btn yt-btn-play" target="_blank">▶️ Přehrát</a>
+                            <form action="{{ url_for('delete_video', filename=filename) }}" method="post" style="display:inline;">
+                                <button type="submit" class="yt-btn yt-btn-delete" onclick="return confirm('Opravdu smazat?')">🗑️ Smazat</button>
+                            </form>
+                            <form action="{{ url_for('rename_video', filename=filename) }}" method="post" style="display:inline;" class="yt-rename-form">
+                                <input type="text" name="new_name" placeholder="Nový název.mp4" class="yt-input yt-rename-input" required>
+                                <button type="submit" class="yt-btn yt-btn-rename">✏️ Přejmenovat</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <p>Žádná videa zatím nenahrána.</p>
+                {% endfor %}
+            </div>
+        </section>
+        <section class="yt-photo-list">
+            <div class="yt-photo-bar">
+                <form method="get" style="display:inline;">
+                    <input type="hidden" name="q" value="{{ query|default('') }}">
+                    <input type="text" name="photo_q" class="yt-search-input" placeholder="Hledat fotku..." value="{{ photo_query|default('') }}">
+                    <label>Řadit podle:</label>
+                    <select name="photo_sort" onchange="this.form.submit()" class="yt-select">
+                        <option value="added" {% if photo_sort=='added' %}selected{% endif %}>Data přidání</option>
+                        <option value="name" {% if photo_sort=='name' %}selected{% endif %}>Názvu</option>
+                        <option value="size" {% if photo_sort=='size' %}selected{% endif %}>Velikosti</option>
+                    </select>
+                    <select name="photo_order" onchange="this.form.submit()" class="yt-select">
+                        <option value="desc" {% if photo_order=='desc' %}selected{% endif %}>Sestupně</option>
+                        <option value="asc" {% if photo_order=='asc' %}selected{% endif %}>Vzestupně</option>
+                    </select>
+                </form>
+            </div>
+            <div class="yt-photos">
+                {% for filename, meta in photos %}
+                <div class="yt-photo-card">
+                    <div class="yt-photo-thumb">
+                        <a href="{{ url_for('photo', filename=filename) }}" target="_blank">
+                            <img src="{{ url_for('photo', filename=filename) }}" alt="{{ meta.original_name }}">
+                        </a>
+                    </div>
+                    <div class="yt-photo-info">
+                        <span class="yt-photo-title" title="{{ meta.original_name }}">{{ meta.original_name }}</span>
+                        <div class="yt-photo-meta">
+                            <span>Přidáno: {{ meta.added[:19].replace('T',' ') }}</span>
+                            <span>Velikost: {{ (meta.size/1024)|round(1) }} KB</span>
+                        </div>
+                        <div class="yt-actions">
+                            <form action="{{ url_for('delete_photo', filename=filename) }}" method="post" style="display:inline;">
+                                <button type="submit" class="yt-btn yt-btn-delete" onclick="return confirm('Opravdu smazat?')">🗑️ Smazat</button>
+                            </form>
+                            <form action="{{ url_for('rename_photo', filename=filename) }}" method="post" style="display:inline;" class="yt-rename-form">
+                                <input type="text" name="new_name" placeholder="Nový název.jpg" class="yt-input yt-rename-input" required>
+                                <button type="submit" class="yt-btn yt-btn-rename">✏️ Přejmenovat</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <p>Žádné fotky zatím nenahrány.</p>
+                {% endfor %}
+            </div>
+        </section>
+    </main>
+    <script>
+    // Upload popup logic
+    const openBtn = document.getElementById('openUploadPopup');
+    const closeBtn = document.getElementById('closeUploadPopup');
+    const popup = document.getElementById('uploadPopup');
+    const popupForm = document.getElementById('popupUploadForm');
+    const popupFileInput = document.getElementById('popupFileInput');
+    const popupVideoInput = document.getElementById('popupVideoInput');
+    const popupPhotoInput = document.getElementById('popupPhotoInput');
+    const popupFileLabel = document.getElementById('popupFileLabel');
+    const popupPreview = document.getElementById('popupPreview');
+    const popupCustomName = document.getElementById('popupCustomName');
+
+    // Show popup
+    openBtn.onclick = () => { popup.style.display = 'flex'; };
+    closeBtn.onclick = () => { popup.style.display = 'none'; resetPopup(); };
+    window.onclick = (e) => { if (e.target === popup) { popup.style.display = 'none'; resetPopup(); } };
+
+    // Upload type switch
+    popupForm.upload_type.forEach(radio => {
+        radio.onchange = () => {
+            resetPopup();
+            if (radio.value === 'video' && radio.checked) {
+                popupFileInput.accept = "video/*";
+                popupFileInput.value = "";
+                popupVideoInput.disabled = false;
+                popupPhotoInput.disabled = true;
+            } else if (radio.value === 'photo' && radio.checked) {
+                popupFileInput.accept = "image/*";
+                popupFileInput.value = "";
+                popupVideoInput.disabled = true;
+                popupPhotoInput.disabled = false;
+            }
+        };
+    });
+
+    // File label click
+    popupFileLabel.onclick = (e) => {
+        e.preventDefault();
+        popupFileInput.click();
+    };
+
+    // File input change
+    popupFileInput.onchange = () => {
+        popupPreview.innerHTML = "";
+        if (!popupFileInput.files.length) return;
+        const file = popupFileInput.files[0];
+        // Set preview
+        if (file.type.startsWith("video/")) {
+            const vid = document.createElement("video");
+            vid.src = URL.createObjectURL(file);
+            vid.controls = true;
+            vid.style.maxWidth = "100%";
+            vid.style.maxHeight = "180px";
+            popupPreview.appendChild(vid);
+        } else if (file.type.startsWith("image/")) {
+            const img = document.createElement("img");
+            img.src = URL.createObjectURL(file);
+            img.style.maxWidth = "100%";
+            img.style.maxHeight = "180px";
+            popupPreview.appendChild(img);
+        }
+        // Set name
+        popupCustomName.value = file.name;
+    };
+
+    // On submit, copy file to correct input
+    popupForm.onsubmit = function(e) {
+        if (!popupFileInput.files.length) {
+            alert("Vyberte soubor!");
+            e.preventDefault();
+            return false;
+        }
+        // Copy file to correct input
+        if (popupForm.upload_type.value === "video") {
+            popupVideoInput.files = popupFileInput.files;
+            popupPhotoInput.value = "";
+        } else {
+            popupPhotoInput.files = popupFileInput.files;
+            popupVideoInput.value = "";
+        }
+        // Set custom name if filled
+        if (popupCustomName.value) {
+            popupFileInput.setAttribute("name", "custom_name");
+        }
+    };
+
+    function resetPopup() {
+        popupFileInput.value = "";
+        popupPreview.innerHTML = "";
+        popupCustomName.value = "";
+    }
+    </script>
+</body>
+</html>

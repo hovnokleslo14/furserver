@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FurServer - Streaming {{ filename }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <header>
+        <h1>FurServer</h1>
+        <a href="{{ url_for('index') }}" class="back-btn">← Back</a>
+    </header>
+    <main>
+        <section class="stream-section">
+            <h2>{{ filename }}</h2>
+            <video id="videoPlayer" controls autoplay width="100%" src="{{ url_for('video', filename=filename) }}"></video>
+        </section>
+    </main>
+    <script>
+    const video = document.getElementById('videoPlayer');
+    // Obnovit pozici
+    fetch('{{ url_for("get_progress", filename=filename) }}')
+        .then(r => r.json())
+        .then(data => {
+            if (data.watched && data.watched > 0) {
+                video.currentTime = data.watched;
+            }
+        });
+    // Ukládat pozici
+    function saveProgress() {
+        fetch('{{ url_for("save_progress", filename=filename) }}', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                watched: video.currentTime,
+                duration: video.duration || 0
+            })
+        });
+    }
+    video.addEventListener('timeupdate', saveProgress);
+    video.addEventListener('pause', saveProgress);
+    video.addEventListener('ended', saveProgress);
+    </script>
+</body>
+</html>

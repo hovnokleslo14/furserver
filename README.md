@@ -83,5 +83,5 @@ GPL-3.0 license
 ---
 
 <p align="center">
-  <b>Vytvořil FurServer Team &nbsp;|&nbsp; 2024</b>
+  <b>Vytvořil Furplex &nbsp;|&nbsp; 2025</b>
 </p>

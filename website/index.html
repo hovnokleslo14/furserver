@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FurServer - Lokální media vault</title>
+    <meta name="description" content="FurServer je lokální Flask media vault pro videa, fotky, tagy a soukromé účty bez cloudu.">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="grid-bg" aria-hidden="true"></div>
+    <header class="site-header">
+        <a class="brand" href="https://github.com/hovnokleslo14/furserver">
+            <span class="brand-mark">
+                <svg viewBox="0 0 32 32" aria-hidden="true">
+                    <path d="M7 8.5C7 6.6 8.6 5 10.5 5h11C23.4 5 25 6.6 25 8.5v15c0 1.9-1.6 3.5-3.5 3.5h-11A3.5 3.5 0 0 1 7 23.5v-15Z"/>
+                    <path d="m14 11 7 5-7 5V11Z"/>
+                </svg>
+            </span>
+            <strong>FurServer</strong>
+        </a>
+        <nav>
+            <a href="#features">Funkce</a>
+            <a href="#install">Instalace</a>
+            <a href="https://github.com/hovnokleslo14/furserver">GitHub</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="hero-copy">
+                <h1>FurServer</h1>
+                <p>Moderní lokální media vault pro videa, fotky, tagy a soukromé účty. Flask aplikace běží u tebe na počítači a metadata drží v JSON souborech projektu.</p>
+                <div class="hero-actions">
+                    <a class="primary" href="https://github.com/hovnokleslo14/furserver">Otevřít repo</a>
+                    <a class="secondary" href="#install">Spustit lokálně</a>
+                </div>
+            </div>
+            <figure class="product-shot">
+                <img src="assets/furserver-dashboard-concept.png" alt="Moderní dashboard FurServeru s knihovnou médií">
+            </figure>
+        </section>
+
+        <section class="feature-band" id="features">
+            <article>
+                <span>01</span>
+                <h2>Lokální login</h2>
+                <p>První spuštění vytvoří účet uložený v `data/users.json`. Hesla jsou hashovaná a session chrání knihovnu i soubory.</p>
+            </article>
+            <article>
+                <span>02</span>
+                <h2>Tagy pro média</h2>
+                <p>Videa i fotky mají vlastní tagy, filtrování, editaci a vyhledávání přes názvy i štítky.</p>
+            </article>
+            <article>
+                <span>03</span>
+                <h2>Moderní dashboard</h2>
+                <p>Responzivní UI s animacemi, preview kartami, command barem, upload modalem a přehrávačem s lokálním progressem.</p>
+            </article>
+        </section>
+
+        <section class="install" id="install">
+            <div>
+                <h2>Spuštění</h2>
+                <p>FurServer je lokální Flask aplikace. Netlify hostuje jen tuhle prezentační stránku, samotný upload server se spouští na tvém zařízení.</p>
+            </div>
+            <pre><code>git clone https://github.com/hovnokleslo14/furserver.git
+cd furserver
+pip install -r requirements.txt
+python app.py</code></pre>
+        </section>
+    </main>
+</body>
+</html>

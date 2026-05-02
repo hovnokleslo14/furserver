@@ -1,46 +1,82 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="cs">
 <head>
     <meta charset="UTF-8">
-    <title>FurServer - Streaming {{ filename }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FurServer - {{ meta.original_name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
-    <header>
-        <h1>FurServer</h1>
-        <a href="{{ url_for('index') }}" class="back-btn">← Back</a>
+<body class="player-body">
+    <div class="ambient-grid" aria-hidden="true"></div>
+    <header class="player-topbar">
+        <a class="back-link" href="{{ url_for('index') }}">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10.4 5 1.4 1.4L7.2 11H20v2H7.2l4.6 4.6-1.4 1.4L3.4 12l7-7Z"/></svg>
+            Knihovna
+        </a>
+        <form action="{{ url_for('logout') }}" method="post">
+            <button class="icon-button" type="submit" title="Odhlásit" aria-label="Odhlásit">
+                <svg viewBox="0 0 24 24"><path d="M10 5H6v14h4v2H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5v2Zm6.6 3.4L20.2 12l-3.6 3.6-1.4-1.4L16.8 13H9v-2h7.8l-1.6-1.2 1.4-1.4Z"/></svg>
+            </button>
+        </form>
     </header>
-    <main>
-        <section class="stream-section">
-            <h2>{{ filename }}</h2>
-            <video id="videoPlayer" controls autoplay width="100%" src="{{ url_for('video', filename=filename) }}"></video>
+
+    <main class="player-shell">
+        <section class="cinema-panel">
+            <video id="videoPlayer" controls autoplay src="{{ url_for('video', filename=filename) }}"></video>
         </section>
+        <aside class="player-details">
+            <span class="content-type">Video</span>
+            <h1>{{ meta.original_name }}</h1>
+            <div class="meta-row large">
+                <span>{{ meta.added[:10] }}</span>
+                <span>{{ (meta.size / 1024 / 1024)|round(2) }} MB</span>
+            </div>
+            <div class="chips">
+                {% for tag in meta.tags or [] %}
+                <a href="{{ url_for('index', tag=tag) }}">{{ tag }}</a>
+                {% else %}
+                <span>Bez tagu</span>
+                {% endfor %}
+            </div>
+            <form class="inline-editor open" action="{{ url_for('update_tags', kind='video', filename=filename) }}" method="post">
+                <input type="text" name="tags" value="{{ (meta.tags or [])|join(', ') }}" placeholder="Přidat tagy">
+                <button type="submit">Uložit tagy</button>
+            </form>
+            <div class="player-save-state" id="saveState">Progress se ukládá lokálně</div>
+        </aside>
     </main>
+
     <script>
-    const video = document.getElementById('videoPlayer');
-    // Obnovit pozici
-    fetch('{{ url_for("get_progress", filename=filename) }}')
-        .then(r => r.json())
-        .then(data => {
-            if (data.watched && data.watched > 0) {
-                video.currentTime = data.watched;
-            }
+    const video = document.getElementById("videoPlayer");
+    const saveState = document.getElementById("saveState");
+    let saveTimer = null;
+
+    fetch("{{ url_for('get_progress', filename=filename) }}")
+        .then((response) => response.json())
+        .then((data) => {
+            if (data.watched && data.watched > 0) video.currentTime = data.watched;
         });
-    // Ukládat pozici
+
     function saveProgress() {
-        fetch('{{ url_for("save_progress", filename=filename) }}', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                watched: video.currentTime,
-                duration: video.duration || 0
-            })
-        });
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(() => {
+            fetch("{{ url_for('save_progress', filename=filename) }}", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    watched: video.currentTime,
+                    duration: video.duration || 0
+                })
+            }).then(() => {
+                saveState.textContent = "Progress uložen";
+                setTimeout(() => saveState.textContent = "Progress se ukládá lokálně", 1400);
+            });
+        }, 250);
     }
-    video.addEventListener('timeupdate', saveProgress);
-    video.addEventListener('pause', saveProgress);
-    video.addEventListener('ended', saveProgress);
+
+    video.addEventListener("timeupdate", saveProgress);
+    video.addEventListener("pause", saveProgress);
+    video.addEventListener("ended", saveProgress);
     </script>
 </body>
 </html>

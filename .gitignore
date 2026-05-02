@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.pytest_cache/
+.netlify/
+
+data/users.json
+data/secret.key
+
+videos/*
+!videos/metadata.json
+photos/*
+!photos/metadata.json

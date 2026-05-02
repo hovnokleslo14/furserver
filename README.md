@@ -1,87 +1,89 @@
-<h1 align="center">🎬 FurServer – Moderní domácí YouTube/Galerie server v Pythonu</h1>
+# FurServer
 
-<p align="center">
-  <img src="https://img.shields.io/badge/python-3.8%2B-blue?logo=python" alt="Python">
-  <img src="https://img.shields.io/badge/flask-Modern%20Web%20UI-red?logo=flask">
-  <img src="https://img.shields.io/badge/design-YouTube%20Dark%20Mode-black?logo=youtube">
-</p>
+Moderní lokální media vault pro videa, fotky, tagy a soukromé účty ve Flasku.
 
----
+[Live web na Netlify](https://furserver.netlify.app) · [Netlify projekt](https://app.netlify.com/projects/furserver)
 
-## 🚀 Funkce
+![FurServer dashboard concept](website/assets/furserver-dashboard-concept.png)
 
-- **Nahrávání videí i fotek** přes moderní popup s náhledem a možností zadat vlastní název
-- **Oddělené galerie** pro videa a fotky
-- **Vyhledávání, řazení a filtrování** podle názvu, data, velikosti, délky sledování
-- **Přejmenování a mazání** souborů přímo z webového rozhraní
-- **Sledování pozice přehrávání videa** (pokračování tam, kde jste skončili)
-- **Responzivní a nadčasový design** inspirovaný YouTube (tmavý režim, animace)
-- **Plně v Pythonu (Flask)**, žádné Node.js nebo Next.js
+## Co je nové
 
----
+- Moderní dark UI s animacemi, command barem, responzivním sidebarem a media gridem.
+- Lokální registrace a přihlášení přes Flask session.
+- Hesla se ukládají jako hash do `data/users.json`.
+- Videa i fotky mají tagy, editaci tagů, tag filtry a vyhledávání podle názvu i tagu.
+- Upload modal podporuje video/fotku, vlastní název a tagy při nahrání.
+- Přejmenování, mazání a chráněné media routy jsou dostupné až po přihlášení.
+- Přehrávač videa ukládá progress lokálně do `videos/metadata.json`.
+- Samostatný statický web pro Netlify je v `website/`.
 
-## 🛠️ Instalace a spuštění
+## Spuštění lokálně
 
 ```bash
 git clone https://github.com/hovnokleslo14/furserver.git
 cd furserver
-pip install flask
+pip install -r requirements.txt
 python app.py
 ```
 
-- Otevřete v prohlížeči: [http://localhost:5000](http://localhost:5000)
+Pak otevři [http://localhost:5000](http://localhost:5000).
 
----
+Při prvním spuštění se zobrazí registrace hlavního lokálního účtu. Další přístupy už půjdou přes přihlášení.
 
-## 📂 Struktura projektu
+## Lokální data
 
+FurServer zůstává jednoduchý a lokální:
+
+- `videos/` ukládá videa a `videos/metadata.json`
+- `photos/` ukládá fotky a `photos/metadata.json`
+- `data/users.json` ukládá lokální účty
+- `data/secret.key` drží stabilní Flask session secret
+
+`data/users.json`, `data/secret.key` a nahraná média jsou ignorovaná Gitem, aby se soukromý obsah neposílal do repozitáře.
+
+## Netlify web
+
+Netlify hostuje statickou prezentační stránku z adresáře `website/`:
+
+```toml
+[build]
+  publish = "website"
 ```
+
+Produkční URL: [https://furserver.netlify.app](https://furserver.netlify.app)
+
+Samotná Flask aplikace s uploady a lokálním souborovým úložištěm se spouští na tvém zařízení nebo na vlastním Python serveru.
+
+## Struktura
+
+```text
 furserver/
-│
-├── app.py                # Hlavní Flask aplikace
-├── videos/               # Složka s videi a metadata.json
-├── photos/               # Složka s fotkami a metadata.json
+├── app.py
+├── requirements.txt
+├── netlify.toml
+├── data/
+├── photos/
+│   └── metadata.json
+├── videos/
+│   └── metadata.json
 ├── static/
-│   └── style.css         # Moderní YouTube-like styl
+│   └── style.css
 ├── templates/
-│   └── index.html        # Hlavní webové rozhraní
-└── README.md             # Tato dokumentace
+│   ├── auth.html
+│   ├── index.html
+│   └── stream.html
+└── website/
+    ├── index.html
+    ├── styles.css
+    └── assets/
 ```
 
----
+## Podporované formáty
 
-## ✨ Použití
+Videa: `mp4`, `webm`, `ogg`, `mkv`
 
-- **Nahrání:** Klikněte na ikonu nahrávání vpravo nahoře, vyberte typ souboru (video/fotka), zadejte název (volitelné), nahrajte a potvrďte.
-- **Vyhledávání:** Použijte vyhledávací pole pro videa nebo fotky.
-- **Řazení:** Řaďte podle názvu, data, velikosti, délky sledování.
-- **Mazání/Přejmenování:** Použijte tlačítka pod každým souborem.
-- **Přehrávání:** Klikněte na náhled videa nebo fotky.
+Fotky: `jpg`, `jpeg`, `png`, `gif`, `bmp`, `webp`
 
----
+## Licence
 
-## 📝 Poznámky
-
-- **Videa** jsou ukládána do složky `videos/`, **fotky** do `photos/`.
-- **Metadata** (název, velikost, pozice přehrávání) jsou ukládána do `metadata.json` v příslušné složce.
-- **Podporované formáty videí:** mp4, webm, ogg, mkv  
-  **Podporované formáty fotek:** jpg, jpeg, png, gif, bmp, webp
-
----
-
-## 💡 Tipy
-
-- Pro nasazení na veřejný server doporučujeme nastavit `debug=False` a použít např. [gunicorn](https://gunicorn.org/) nebo [waitress](https://docs.pylonsproject.org/projects/waitress/en/stable/).
-- Pro větší knihovny doporučujeme použít SSD disk.
-
----
-
-## 📜 Licence
-
-GPL-3.0 license
-
----
-
-<p align="center">
-  <b>Vytvořil Furplex &nbsp;|&nbsp; 2025</b>
-</p>
+GPL-3.0

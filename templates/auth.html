@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FurServer - Přihlášení</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="auth-body">
+    <div class="ambient-grid" aria-hidden="true"></div>
+    <main class="auth-shell">
+        <section class="auth-brand">
+            <a href="{{ url_for('auth') }}" class="brand">
+                <span class="brand-mark">
+                    <svg viewBox="0 0 32 32" aria-hidden="true">
+                        <path d="M7 8.5C7 6.6 8.6 5 10.5 5h11C23.4 5 25 6.6 25 8.5v15c0 1.9-1.6 3.5-3.5 3.5h-11A3.5 3.5 0 0 1 7 23.5v-15Z"/>
+                        <path d="m14 11 7 5-7 5V11Z"/>
+                    </svg>
+                </span>
+                <span>
+                    <strong>FurServer</strong>
+                    <small>Local-first media vault</small>
+                </span>
+            </a>
+            <h1>Tvoje videa a fotky, zamčené lokálně.</h1>
+            <p>Účet vzniká jen v tomhle projektu. Heslo se ukládá jako hash do lokálního JSON souboru.</p>
+            <div class="auth-proof">
+                <span>Session login</span>
+                <span>Lokální tagy</span>
+                <span>Bez cloudu</span>
+            </div>
+        </section>
+
+        <section class="auth-panel">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="flash-stack static">
+                {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            {% if not has_users %}
+            <div class="first-run">První spuštění: vytvoř hlavní lokální účet.</div>
+            {% endif %}
+
+            <div class="auth-tabs" {% if not has_users %}hidden{% endif %}>
+                <button class="auth-tab active" type="button" data-auth-tab="login">Přihlášení</button>
+                <button class="auth-tab" type="button" data-auth-tab="register">Registrovat</button>
+            </div>
+
+            <form class="auth-form active" data-auth-form="login" action="{{ url_for('auth') }}" method="post" {% if not has_users %}hidden{% endif %}>
+                <input type="hidden" name="mode" value="login">
+                <label class="form-field">
+                    Uživatelské jméno
+                    <input type="text" name="username" autocomplete="username" minlength="3" required>
+                </label>
+                <label class="form-field">
+                    Heslo
+                    <input type="password" name="password" autocomplete="current-password" minlength="6" required>
+                </label>
+                <button class="primary-action full" type="submit">Přihlásit</button>
+            </form>
+
+            <form class="auth-form {% if not has_users %}active{% endif %}" data-auth-form="register" action="{{ url_for('auth') }}" method="post">
+                <input type="hidden" name="mode" value="register">
+                <label class="form-field">
+                    Uživatelské jméno
+                    <input type="text" name="username" autocomplete="username" minlength="3" required>
+                </label>
+                <label class="form-field">
+                    Heslo
+                    <input type="password" name="password" autocomplete="new-password" minlength="6" required>
+                </label>
+                <button class="primary-action full" type="submit">Registrovat</button>
+            </form>
+        </section>
+    </main>
+
+    <script>
+    const tabs = document.querySelectorAll("[data-auth-tab]");
+    const forms = document.querySelectorAll("[data-auth-form]");
+    tabs.forEach((tab) => {
+        tab.addEventListener("click", () => {
+            tabs.forEach((item) => item.classList.toggle("active", item === tab));
+            forms.forEach((form) => form.classList.toggle("active", form.dataset.authForm === tab.dataset.authTab));
+        });
+    });
+    </script>
+</body>
+</html>
